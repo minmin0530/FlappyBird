@@ -13,14 +13,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
-    var item:SKNode!
+    var itemNode:SKNode!
+    var item:SKSpriteNode!
     
     // 衝突判定カテゴリー
     let birdCategory: UInt32 = 1 << 0       // 0...00001
     let groundCategory: UInt32 = 1 << 1     // 0...00010
     let wallCategory: UInt32 = 1 << 2       // 0...00100
     let scoreCategory: UInt32 = 1 << 3      // 0...01000
-    
+    let itemCategory: UInt32 = 1 << 4      // 0...10000
+
     // スコア用
     var score = 0
     let userDefaults:UserDefaults = UserDefaults.standard
@@ -42,7 +44,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 壁用のノード
         wallNode = SKNode()
         scrollNode.addChild(wallNode)
-        
+
+        itemNode = SKNode()
+        scrollNode.addChild(itemNode)
         // 各種スプライトを生成する処理をメソッドに分割
         setupGround()
         setupCloud()
@@ -59,6 +63,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             return
         }
         
+        
         if (contact.bodyA.categoryBitMask & scoreCategory) == scoreCategory || (contact.bodyB.categoryBitMask & scoreCategory) == scoreCategory {
             // スコア用の物体と衝突した
             print("ScoreUp")
@@ -73,6 +78,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 userDefaults.set(bestScore, forKey: "BEST")
                 userDefaults.synchronize()
             }
+        } else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
+ //           scrollNode.speed = 0
+            
+            let removeItem = SKAction.removeFromParent()
+            contact.bodyB.node!.run(removeItem)
+//            item.physicsBody?.collisionBitMask = groundCategory
+//            let roll = SKAction.rotate(byAngle: CGFloat(Double.pi) * CGFloat(item.position.y) * 0.01, duration:1)
+//            item.run(roll, completion:{
+//                self.item.speed = 0
+//            })
         } else {
             // 壁か地面と衝突した
             print("GameOver")
@@ -275,17 +290,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         wallNode.run(repeatForeverAnimation)
     }
     func setupItem() {
-        let itemSprite = SKSpriteNode(color:UIColor.red, size: CGSize.init(width: 40, height: 40) )
+        // 鳥の画像を2種類読み込む
+        let birdTextureA = SKTexture(imageNamed: "icon")
+        birdTextureA.filteringMode = .linear
         
-//        let itemTexture = SKTexture(imageNamed: "icon")
-//        itemTexture.filteringMode = .linear
-        
-        // 壁の画像を読み込む
-        let wallTexture = SKTexture(imageNamed: "icon")
-        wallTexture.filteringMode = .linear
-//        wallTexture
-        // 移動する距離を計算
-        let movingDistance = CGFloat(self.frame.size.width + itemSprite.size.width)
+        let movingDistance = CGFloat(self.frame.size.width + 40)
         
         // 画面外まで移動するアクションを作成
         let moveWall = SKAction.moveBy(x: -movingDistance, y: 0, duration:4)
@@ -296,74 +305,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 2つのアニメーションを順に実行するアクションを作成
         let wallAnimation = SKAction.sequence([moveWall, removeWall])
         
-        // 鳥の画像サイズを取得
-        let birdSize = SKTexture(imageNamed: "bird_a").size()
         
-        // 鳥が通り抜ける隙間の長さを鳥のサイズの3倍とする
-        let slit_length = birdSize.height * 3
-        
-        // 隙間位置の上下の振れ幅を鳥のサイズの3倍とする
-        let random_y_range = birdSize.height * 3
-        
-        // 下の壁のY軸下限位置(中央位置から下方向の最大振れ幅で下の壁を表示する位置)を計算
-        let groundSize = SKTexture(imageNamed: "ground").size()
-        let center_y = groundSize.height + (self.frame.size.height - groundSize.height) / 2
-        let under_wall_lowest_y = center_y - slit_length / 2 - itemSprite.size.height / 2 - random_y_range / 2
-        
-        // 壁を生成するアクションを作成
         let createWallAnimation = SKAction.run({
-            // 壁関連のノードを乗せるノードを作成
-            let wall = SKNode()
-            wall.position = CGPoint(x: self.frame.size.width + itemSprite.size.width / 2, y: 0)
-            wall.zPosition = -50 // 雲より手前、地面より奥
             
             // 0〜random_y_rangeまでのランダム値を生成
-            let random_y = CGFloat.random(in: 0..<random_y_range)
-            // Y軸の下限にランダムな値を足して、下の壁のY座標を決定
-            let under_wall_y = under_wall_lowest_y + random_y
+            let random_y = CGFloat.random(in: 0..<120)
             
-            // 下側の壁を作成
-            let under = SKSpriteNode(texture: wallTexture)
-            under.position = CGPoint(x: 100, y: under_wall_y)
-            under.xScale = 0.1
-            under.yScale = 0.1
+            let item = SKSpriteNode(texture: birdTextureA, size: CGSize.init(width: 40, height: 40))
+            item.position = CGPoint(x: self.frame.size.width + item.size.width / 2, y:self.frame.size.height * 0.5 + random_y)
+            item.zPosition = -50
 
-            // スプライトに物理演算を設定する
-            under.physicsBody = SKPhysicsBody(rectangleOf: itemSprite.size)    // ←追加
-//            under.physicsBody?.categoryBitMask = self.wallCategory
+            // 物理演算を設定
+            item.physicsBody = SKPhysicsBody(circleOfRadius: item.size.height / 2)
+            item.physicsBody?.isDynamic = false
             
-            // 衝突の時に動かないように設定する
-            under.physicsBody?.isDynamic = false    // ←追加
+            // 衝突した時に回転させない
+            item.physicsBody?.allowsRotation = false
             
-            wall.addChild(under)
+            // 衝突のカテゴリー設定
+            item.physicsBody?.categoryBitMask = self.itemCategory
+            item.physicsBody?.collisionBitMask = self.birdCategory
+            item.physicsBody?.contactTestBitMask = self.birdCategory
+
             
-            // 上側の壁を作成
-            let upper = SKSpriteNode(texture: wallTexture)
-            upper.position = CGPoint(x: 100, y: under_wall_y + itemSprite.size.height + slit_length)
-            upper.xScale = 0.1
-            upper.yScale = 0.1
-            
-            // スプライトに物理演算を設定する
-            upper.physicsBody = SKPhysicsBody(rectangleOf: itemSprite.size)    // ←追加
-//            upper.physicsBody?.categoryBitMask = self.wallCategory
-            
-            // 衝突の時に動かないように設定する
-            upper.physicsBody?.isDynamic = false    // ←追加
-            
-            wall.addChild(upper)
-            
-            let scoreNode = SKNode()
-            scoreNode.position = CGPoint(x: upper.size.width + birdSize.width / 2, y: self.frame.height / 2)
-            scoreNode.physicsBody = SKPhysicsBody(rectangleOf: CGSize(width: upper.size.width, height: self.frame.size.height))
-            scoreNode.physicsBody?.isDynamic = false
-            scoreNode.physicsBody?.categoryBitMask = self.scoreCategory
-            scoreNode.physicsBody?.contactTestBitMask = self.birdCategory
-            
-            wall.addChild(scoreNode)
-            
-            wall.run(wallAnimation)
-            
-            self.wallNode.addChild(wall)
+            item.run(wallAnimation)
+        
+            self.itemNode.addChild(item)
         })
         
         // 次の壁作成までの時間待ちのアクションを作成
@@ -372,7 +339,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 壁を作成->時間待ち->壁を作成を無限に繰り返すアクションを作成
         let repeatForeverAnimation = SKAction.repeatForever(SKAction.sequence([createWallAnimation, waitAnimation]))
         
-        wallNode.run(repeatForeverAnimation)
+        itemNode.run(repeatForeverAnimation)
+
     }
     func setupBird() {
         // 鳥の画像を2種類読み込む
