@@ -7,9 +7,10 @@
 //
 
 import SpriteKit
+import AVFoundation
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
-
+    var audioPlayerInstance : AVAudioPlayer! = nil
     var scrollNode:SKNode!
     var wallNode:SKNode!
     var bird:SKSpriteNode!
@@ -25,11 +26,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
     // スコア用
     var score = 0
+    var itemScore = 0
     let userDefaults:UserDefaults = UserDefaults.standard
     var scoreLabelNode:SKLabelNode!
     var bestScoreLabelNode:SKLabelNode!
+    var itemScoreLabelNode:SKLabelNode!
     
     override func didMove(to view: SKView) {
+        let soundFilePath = Bundle.main.path(forResource: "decision", ofType: "mp3")!
+        let sound:URL = URL(fileURLWithPath: soundFilePath)
+        // AVAudioPlayerのインスタンスを作成,ファイルの読み込み
+        do {
+            audioPlayerInstance = try AVAudioPlayer(contentsOf: sound, fileTypeHint:nil)
+        } catch {
+            print("AVAudioPlayerインスタンス作成でエラー")
+        }
+        // 再生準備
+        audioPlayerInstance.prepareToPlay()
         
         // 背景色を設定
         backgroundColor = UIColor(red: 0.15, green: 0.75, blue: 0.90, alpha: 1)
@@ -80,6 +93,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
         } else if (contact.bodyA.categoryBitMask & itemCategory) == itemCategory || (contact.bodyB.categoryBitMask & itemCategory) == itemCategory {
  //           scrollNode.speed = 0
+            print("itemScoreUp")
+            itemScore += 1
+            itemScoreLabelNode.text = "Item Score:\(itemScore)"
+            
+            audioPlayerInstance.currentTime = 0
+            audioPlayerInstance.play()
+
             
             let removeItem = SKAction.removeFromParent()
             contact.bodyB.node!.run(removeItem)
@@ -107,7 +127,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     func restart() {
         score = 0
         scoreLabelNode.text = String("Score:\(score)")
-        
+        itemScore = 0
+        itemScoreLabelNode.text = String("ItemScore:\(itemScore)")
+
         bird.position = CGPoint(x: self.frame.size.width * 0.2, y:self.frame.size.height * 0.7)
         bird.physicsBody?.velocity = CGVector.zero
         bird.physicsBody?.collisionBitMask = groundCategory | wallCategory
@@ -376,6 +398,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func setupScoreLabel() {
+        itemScore = 0
+        itemScoreLabelNode = SKLabelNode()
+        itemScoreLabelNode.fontColor = UIColor.black
+        itemScoreLabelNode.position = CGPoint(x: 10, y: self.frame.size.height - 120)
+        itemScoreLabelNode.zPosition = 100 // 一番手前に表示する
+        itemScoreLabelNode.horizontalAlignmentMode = SKLabelHorizontalAlignmentMode.left
+        itemScoreLabelNode.text = "Item Score:\(itemScore)"
+        self.addChild(itemScoreLabelNode)
+
+        
+        
         score = 0
         scoreLabelNode = SKLabelNode()
         scoreLabelNode.fontColor = UIColor.black

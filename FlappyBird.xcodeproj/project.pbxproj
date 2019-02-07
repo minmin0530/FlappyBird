@@ -13,6 +13,7 @@
 		F418622B2206D705000D3CEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F418622A2206D705000D3CEE /* Assets.xcassets */; };
 		F418622E2206D705000D3CEE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F418622C2206D705000D3CEE /* LaunchScreen.storyboard */; };
 		F41862362206DA99000D3CEE /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = F41862352206DA99000D3CEE /* GameScene.swift */; };
+		F4C253B6220C49DF00215396 /* decision.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = F4C253B5220C49DF00215396 /* decision.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		F418622D2206D705000D3CEE /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		F418622F2206D705000D3CEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		F41862352206DA99000D3CEE /* GameScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameScene.swift; sourceTree = "<group>"; };
+		F4C253B5220C49DF00215396 /* decision.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = decision.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +65,7 @@
 				F418622C2206D705000D3CEE /* LaunchScreen.storyboard */,
 				F418622F2206D705000D3CEE /* Info.plist */,
 				F41862352206DA99000D3CEE /* GameScene.swift */,
+				F4C253B5220C49DF00215396 /* decision.mp3 */,
 			);
 			path = FlappyBird;
 			sourceTree = "<group>";
@@ -125,6 +128,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F4C253B6220C49DF00215396 /* decision.mp3 in Resources */,
 				F418622E2206D705000D3CEE /* LaunchScreen.storyboard in Resources */,
 				F418622B2206D705000D3CEE /* Assets.xcassets in Resources */,
 				F41862292206D703000D3CEE /* Main.storyboard in Resources */,
